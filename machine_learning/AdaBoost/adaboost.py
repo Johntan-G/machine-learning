@@ -57,6 +57,7 @@ def adaboost_train(data_arr, class_labels, num_iter=40):
     agg_class_est = np.matrix(np.zeros((m, 1)))
     for i in range(num_iter):
         best_stump, error, class_est = build_stump(data_arr, class_labels, D)
+<<<<<<< HEAD
         print "D:", D.T
         alpha = float(0.5 * np.log((1.0-error)/max(error,1e-16)))
         best_stump["alpha"] = alpha
@@ -64,6 +65,15 @@ def adaboost_train(data_arr, class_labels, num_iter=40):
         print "class_est:", class_est.T
         agg_class_est += alpha * class_est
         print "aggr_class_est:", agg_class_est.T
+=======
+        # print "D:", D.T
+        alpha = float(0.5 * np.log((1.0-error)/error))
+        best_stump["alpha"] = alpha
+        weak_class_arr.append(best_stump)
+        # print "class_est:", class_est.T
+        agg_class_est += alpha * class_est
+        # print "aggr_class_est:", agg_class_est.T
+>>>>>>> 68d745d9f4a5c0b75e4d74d7d47153b544aab2b9
         # update the weight
         expon = np.exp(np.multiply(-alpha*class_est, np.mat(class_labels).T))
         D = np.multiply(D, expon)
@@ -71,14 +81,66 @@ def adaboost_train(data_arr, class_labels, num_iter=40):
 
         agg_error = np.multiply(np.sign(agg_class_est) != np.mat(class_labels).T, np.ones((m, 1)))
         error_rate = agg_error.sum()/m
+<<<<<<< HEAD
         print "total error: ", error_rate, "\n"
+=======
+        # print "total error: ", error_rate, "\n"
+>>>>>>> 68d745d9f4a5c0b75e4d74d7d47153b544aab2b9
         if error_rate == 0:
             break
     return weak_class_arr
 
 
+<<<<<<< HEAD
 if __name__ == '__main__':
     import adaboost
     data_mat, class_labels = adaboost.load_simple_data()
     a = adaboost.adaboost_train(data_mat, class_labels, 9)
     print a
+=======
+def ada_classify(datto_class, classifier_arr):
+    data_mat = np.matrix(datto_class)
+    m = data_mat.shape[0]
+    agg_class_est = np.zeros((m, 1))
+    for i in range(len(classifier_arr)):
+        class_est = stump_classify(data_mat, classifier_arr[i]["dim"], classifier_arr[i]["threshold"],
+                                        classifier_arr[i]["inequality"])
+        agg_class_est += classifier_arr[i]["alpha"] * class_est
+        # print agg_class_est
+    # print np.sign(agg_class_est)
+    return np.sign(agg_class_est)
+
+def load_dataset(filename="horseColicTraining2.txt"):
+    with open(filename, "r") as fr:
+        num_features = len(fr.readline().strip().split("\t"))-1
+    data_mat = []; label_mat = []
+    with open(filename, "r") as fr:
+        for line in fr.readlines():
+            line_arr = []
+            curline = line.strip().split("\t")
+            for i in range(num_features):
+                line_arr.append(float(curline[i]))
+            data_mat.append(line_arr)
+            label_mat.append(float(curline[-1]))
+    return np.matrix(data_mat), np.matrix(label_mat)
+
+
+
+
+
+if __name__ == '__main__':
+    import adaboost
+    # data_mat, labels_arr = adaboost.load_simple_data()
+    # classifier_arr = adaboost.adaboost_train(data_mat, labels_arr, 9)
+    # ada_classify([[0, 0], [5, 5]], classifier_arr)
+    data_arr, labels_arr = load_dataset()
+    test_arr, test_labels_arr = load_dataset("horseColicTest2.txt")
+    error_rate = []
+    # for i in [1, 10, 50, 100, 500, 1000]:
+    classifier_arr = adaboost.adaboost_train(data_arr, labels_arr, 10)
+    prediction10 = ada_classify(test_arr, classifier_arr)
+    error_mat = np.mat(np.zeros((67, 1)))
+    error_mat[prediction10 != np.mat(test_labels_arr).T] = 1.0
+    error_rate.append(error_mat.sum())
+    print error_rate
+>>>>>>> 68d745d9f4a5c0b75e4d74d7d47153b544aab2b9
