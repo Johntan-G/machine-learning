@@ -16,7 +16,7 @@ def build_stump(data_arr, class_labels, weight):
     label_mat = np.matrix(class_labels)
     num_steps = 10
     best_stump = {}
-    best_class_est = np.matrix()
+    best_class_est = np.matrix(np.zeros(m, 1))
     min_error = np.inf
     for i in range(n):
         range_min = data_mat[:, i].min()
@@ -25,4 +25,22 @@ def build_stump(data_arr, class_labels, weight):
         for j in range(-1, int(num_steps)+1):
             for inequal in ["lt", "gt"]:
                 threshold_val = range_min + j * step_size
-                predicted_vec = stump_classify()
+                predicted_vec = stump_classify(data_mat, i, threshold_val, inequal)
+                err_arr = np.matrix(np.ones(m, 1))
+                err_arr[predicted_vec == label_mat] = 0
+                weighted_error = weight.T*err_arr
+                print "split: dim %d, threshold %.2f, threshold inequal: %s, the weighted error is %.3f" % \
+                      (i, threshold_val, inequal, weighted_error)
+                if weighted_error < min_error:
+                    min_error = weighted_error
+                    best_class_est = predicted_vec.copy()
+                    best_stump["dim"] = i
+                    best_stump["threshold"] = threshold_val
+                    best_stump["inequality"] = inequal
+    return best_stump, min_error, best_class_est
+
+
+if __name__ == '__main__':
+    import boost
+    data_mat, class_labels = adaboost.load_simple_data()
+    print data_mat, class_labels
